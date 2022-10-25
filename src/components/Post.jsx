@@ -1,6 +1,6 @@
 import { format, formatDistanceToNow } from "date-fns";
 import ptBR from "date-fns/locale/pt-BR";
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 import Avatar from "./Avatar";
 import Comment from "./Comment";
@@ -26,6 +26,14 @@ export default function Post({ author, content, publishedAt }) {
 
     setComments(old => [...old, newCommentText])
     setNewCommentText('')
+  }
+
+  const handleDeleteComment = useCallback((commentContent) => {
+    setComments(old => old.filter(comment => comment !== commentContent))
+  }, []) 
+
+  const handleNewCommentInvalid = (event) => {
+    event.target.setCustomValidity("Esse campo é obrigatório");
   }
 
   return (
@@ -60,16 +68,30 @@ export default function Post({ author, content, publishedAt }) {
       <form onSubmit={handleFormSubmit} className={styles.commentForm}>
         <strong>Deixe seu feedback</strong>
 
-        <textarea placeholder="Deixe um comentário" name="comment" value={newCommentText} onChange={event => setNewCommentText(event.target.value)} />
+        <textarea 
+          placeholder="Deixe um comentário" 
+          name="comment" 
+          value={newCommentText} 
+          onChange={event => {
+            event.target.setCustomValidity("")
+            setNewCommentText(event.target.value)
+          }} 
+          required
+          onInvalid={handleNewCommentInvalid}
+        />
 
         <footer>
-          <button type="submit">Publicar</button>
+          <button type="submit" disabled={!newCommentText}>Publicar</button>
         </footer>
       </form>
 
       <div className={styles.commentList}>
         {comments.map(comment => (
-          <Comment key={comment} content={comment}/>
+          <Comment 
+            key={comment} 
+            content={comment}
+            onDelete={handleDeleteComment}
+          />
         ))}
       </div>
     </article>
